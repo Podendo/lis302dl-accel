@@ -1,0 +1,6 @@
+todo
+.vscode/
+bin
+firmware.bin
+firmware.elf
+generated.STM32F407VG.ld
