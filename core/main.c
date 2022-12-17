@@ -38,7 +38,7 @@ void usart2_isr(void);
 
 void usart_transmit(uint32_t USARTx, uint8_t *data, uint8_t size);
 
-
+/* ######################################################################### */
 
 int main(void)
 {
@@ -51,6 +51,9 @@ int main(void)
     lis_accel_init();
     sleep_ms(10);
 
+    uint8_t tmp = 0;
+    uint8_t com[3] = {0x00, 0x00, 0x00};
+
     gpio_set(GPIOD, GPIO12 | GPIO13 | GPIO14 | GPIO15);
 
     while(1)
@@ -58,18 +61,23 @@ int main(void)
         
         led_blinking();
         sleep_ms(1000);
-        
-        lis_whoami(&lis_r_map);
 
-        //usart_transmit(USART2, "HELLO", 5);
+        lis_read(lis_r_map.out_x, com, 3);
+        usart_transmit(USART2, com, 3);
 
     }
 
     return 0;
 }
+/* ######################################################################### */
+
+
+
+
 
 
 /*___________________F U N C T I O N   P R O T O T Y P E S___________________*/
+
 extern void sleep_ms(uint32_t delay_ms)
 {
     uint32_t current_ms = sys_ms;
@@ -92,7 +100,7 @@ static void clock_setup(void)
 
     rcc_periph_clock_enable(RCC_USART2);
 
-    rcc_periph_clock_enable(RCC_SPI1);
+    //rcc_periph_clock_enable(RCC_SPI1);
 
     return;
 }

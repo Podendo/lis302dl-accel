@@ -4,6 +4,7 @@
 /* SET SPI PERIPHERALS ACCORDING TO PCB */
 
 #define LIS_SPI                 SPI1
+#define LIS_RCC_SPI             RCC_SPI1
 
 #define LIS_SPI_PORT            GPIOA
 #define LIS_SCLK_PIN            GPIO5
@@ -149,6 +150,16 @@
 #define LIS_CLCK_SRC_DX    0x02
 #define LIS_CLCK_SRC_SX    0x01
 
+
+#define LIS_RW_R          0x01
+#define LIS_RW_W          0x00
+#define LIS_MS_INC        0x01
+#define LIS_MS_NINC       0x00
+#define LIS_RW_MODE(MODE)   (MODE << 7)
+#define LIS_MS_MODE(MODE)   (MODE << 6)
+
+
+
 #define LIS_SET_THS_XY(THS, X, Y)                   \
         THS = ((THS | (Y & 0xF0)) << 4) |           \
               ((THS | (X & 0x0F)) << 0)             \
@@ -167,7 +178,6 @@
 
 #define BIT_CLR(X, MASK)        \
         X = X & (~MASK)
-
 
 
 #include <inttypes.h>
@@ -215,17 +225,21 @@ struct lis302dl_registers
 
 };
 
+/**
+ * SPI initialization, MEMS` interrupt pins are
+ * initialized in lis_accel_init procedure.
+*/
 void lis_spi_setup(void);
 
 /**
  * Set register adresses according to datasheet
  * for configuration and communication procedure.
 */
-//void lis_set_reg_addr(void);
 void lis_set_reg_addr(struct lis302dl_registers *lis_reg_map);
 
 
 void lis_set_reg_conf(void);
+
 
 /**
  * Initialize all peripherals, register addresses,
@@ -233,9 +247,37 @@ void lis_set_reg_conf(void);
 */
 void lis_accel_init(void);
 
+/** 
+ * This functions used in accel init procedure, use
+ * it only for debug and to check IC-functionality.
+*/
+uint8_t lis_whoami(void);
 
 
-uint8_t lis_whoami(struct  lis302dl_registers *lis_reg_map);
+/**
+ * Base transfer one byte via SPI interface. Note
+ * that this function does not have timeout check
+ * in loop. It SHOULD be added in next commits.
+*/
+uint8_t lis_transfer_byte(uint8_t databyte);
+
+
+/**
+ * Read data from MEMS IC according to buffer size.
+ * reg_addr - address of the register you`re reading from;
+ * data_buff - data buffer where you write received data;
+ * buffer_size - how many bites we are reading from MEMS;
+*/
+uint8_t lis_read(uint8_t reg_addr, uint8_t *databuff, uint8_t buffsize);
+
+
+/**
+ * Write data to MEMS-IC according to buffer size.
+ * reg_addr - address of the register you`re writing to;
+ * data_buff - data which you write to MEMS` register;
+ * buffsize - how many bytes you write to MEMS` register;
+*/
+uint8_t lis_write(uint8_t reg_addr, uint8_t *databuff, uint8_t buffsize);
 
 
 #endif /* LIS302DL_H*/
