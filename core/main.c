@@ -19,8 +19,8 @@ static uint8_t usart_rx_buffer[128];
 static uint8_t urxb = 0;
 
 
-struct lis302dl_registers lis_r_map;
-struct lis302dl_registers lis_r_cfg;
+struct lis302dl_registers lis_register_map;
+struct lis302dl_registers lis_register_cfg;
 
 
 extern void sleep_ms(uint32_t delay_ms);
@@ -47,32 +47,47 @@ int main(void)
     usart_setup();
     systick_setup();
 
-    lis_set_reg_addr(&lis_r_map);
-    lis_accel_init();
+    lis302dl_set_reg_addr(&lis_register_map);
+    lis302dl_accel_init();
     sleep_ms(10);
 
-    uint8_t tmp = 0;
-    uint8_t com[3] = {0x00, 0x00, 0x00};
+    uint8_t com[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00};
 
     gpio_set(GPIOD, GPIO12 | GPIO13 | GPIO14 | GPIO15);
 
     while(1)
     {
-        
-        led_blinking();
-        sleep_ms(1000);
+        //led_blinking();
 
-        lis_read(lis_r_map.out_x, com, 3);
-        usart_transmit(USART2, com, 3);
+        lis302dl_read_accel(com);
+
+        if(com[0] > 0x55){
+            gpio_set(GPIOD, GPIO12);
+            //gpio_clear(GPIOD, GPIO13 | GPIO14 | GPIO15);
+        } else{
+            //gpio_clear(GPIOD, GPIO12);
+        }
+        if(com[1] > 0x55){
+            gpio_set(GPIOD, GPIO14);
+            //gpio_clear(GPIOD, GPIO12 | GPIO13 | GPIO15);
+        } else{
+            //gpio_clear(GPIOD, GPIO14);
+        }
+        if(com[2] > 0x55){
+            gpio_set(GPIOD, GPIO13 | GPIO15);
+            //gpio_clear(GPIOD, GPIO12 | GPIO14);
+        } else{
+            //sgpio_clear(GPIOD, GPIO13 | GPIO15);
+        }
+
+        if(gpio_get(GPIOA, GPIO0)) gpio_clear(GPIOD, GPIO12 | GPIO13 | GPIO14 | GPIO15);
+        //sleep_ms(1000);
 
     }
 
     return 0;
 }
 /* ######################################################################### */
-
-
-
 
 
 
